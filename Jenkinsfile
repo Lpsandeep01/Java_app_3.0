@@ -106,6 +106,31 @@ pipeline{
                    
                    dockerImageCleanup("${params.ImageName}","${params.ImageTag}","${params.DockerHubUser}")
                }
+stage('Publish to Artifactory') {
+            when { expression { params.action == 'create' } }
+            steps {
+                script {
+                    def server = 'admin'
+                    def repo = 'example-repo-local'
+                    def buildInfo = rtUpload(server, repo, "${params.ImageName}-${params.ImageTag}.jar")
+                    
+                    // If needed, you can attach buildInfo to the build for traceability
+                    // recordBuildInfo(buildInfo)
+                }
+            }
+        }
+
+        stage('Download from Artifactory') {
+            when { expression { params.action == 'create' } }
+            steps {
+                script {
+                    def server = 'admin'
+                    def repo = 'example-repo-local'
+                    def downloadedFile = rtDownload(server, repo, "${params.ImageName}-${params.ImageTag}.jar", 'downloaded-files/')
+                    
+                    // Use the downloaded file as needed in subsequent steps
+                }
+ 
             }
         }      
     }
